@@ -1,10 +1,12 @@
-var path = require('path');
-var webpack = require('webpack');
-var merge = require('webpack-merge');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var autoprefixer = require('autoprefixer');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var CopyWebpackPlugin = require('copy-webpack-plugin');
+const path = require('path');
+const webpack = require('webpack');
+const LoaderOptionsPlugin = webpack['LoaderOptionsPlugin'];
+const UglifyJsPlugin = webpack.optimize['UglifyJsPlugin'];
+const merge = require('webpack-merge');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const autoprefixer = require('autoprefixer');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 
 const prod = 'production';
@@ -12,18 +14,19 @@ const dev = 'development';
 
 // determine build env
 const TARGET_ENV = process.env.npm_lifecycle_event === 'build' ? prod : dev;
-const isDev = TARGET_ENV == dev;
-const isProd = TARGET_ENV == prod;
+const isDev = TARGET_ENV === dev;
+const isProd = TARGET_ENV === prod;
 
 // entry and output path/filename variables
 const entryPath = path.join(__dirname, 'src/static/index.js');
+const mainPath = path.resolve(__dirname, "src/elm/Main.elm");
 const outputPath = path.join(__dirname, 'dist');
-const outputFilename = isProd ? '[name]-[hash].js' : '[name].js'
+const outputFilename = isProd ? '[name]-[hash].js' : '[name].js';
 
 console.log('WEBPACK GO! Building for ' + TARGET_ENV);
 
 // common webpack config (valid for dev and prod)
-var commonConfig = {
+let commonConfig = {
     output: {
         path: outputPath,
         filename: `static/js/${outputFilename}`,
@@ -40,7 +43,7 @@ var commonConfig = {
         }]
     },
     plugins: [
-        new webpack.LoaderOptionsPlugin({
+        new LoaderOptionsPlugin({
             options: {
                 postcss: [autoprefixer()]
             }
@@ -51,7 +54,7 @@ var commonConfig = {
             filename: 'index.html'
         })
     ]
-}
+};
 
 // additional webpack settings for local env (when invoked by 'npm start')
 if (isDev === true) {
@@ -73,8 +76,11 @@ if (isDev === true) {
                 use: [{
                     loader: 'elm-webpack-loader',
                     options: {
+                        files: [
+                            mainPath
+                        ],
+                        pathToElm: 'node_modules/.bin/elm',
                         verbose: true,
-                        warn: true,
                         debug: true
                     }
                 }]
@@ -117,7 +123,7 @@ if (isProd === true) {
 
             // extract CSS into a separate file
             // minify & mangle JS/CSS
-            new webpack.optimize.UglifyJsPlugin({
+            new UglifyJsPlugin({
                 minimize: true,
                 compressor: {
                     warnings: false
