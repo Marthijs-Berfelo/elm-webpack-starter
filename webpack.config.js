@@ -54,6 +54,21 @@ let commonConfig = {
         rules: [{
             test: /\.(eot|ttf|woff|woff2|svg)$/,
             use: 'file-loader'
+        }, {
+            test: /\.elm$/,
+            exclude: [/elm-stuff/, /node_modules/],
+            use: [{
+                loader: 'elm-webpack-loader',
+                options: {
+                    files: [
+                        mainPath
+                    ],
+                    pathToElm: modulesPath + '/.bin/elm',
+                    verbose: isDev,
+                    debug: isDev,
+                    optimize: isProd
+                }
+            }]
         }]
     },
     plugins: [
@@ -85,20 +100,6 @@ if (isDev === true) {
         },
         module: {
             rules: [{
-                test: /\.elm$/,
-                exclude: [/elm-stuff/, /node_modules/],
-                use: [{
-                    loader: 'elm-webpack-loader',
-                    options: {
-                        files: [
-                            mainPath
-                        ],
-                        pathToElm: modulesPath + '/.bin/elm',
-                        verbose: true,
-                        debug: true
-                    }
-                }]
-            }, {
                 test: /\.sc?ss$/,
                 use: [
                     'style-loader',
@@ -117,10 +118,6 @@ if (isProd === true) {
         entry: entryPath,
         module: {
             rules: [{
-                test: /\.elm$/,
-                exclude: [/elm-stuff/, /node_modules/],
-                use: 'elm-webpack-loader'
-            }, {
                 test: /\.sc?ss$/,
                 use: [
                     MiniCssExtractPlugin.loader,

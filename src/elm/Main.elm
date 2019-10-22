@@ -15,7 +15,11 @@ import Html.Events exposing (onClick)
 
 main : Program () Model Msg
 main =
-    Browser.sandbox { init = init, view = view, update = update }
+    Browser.sandbox
+        { init = init
+        , view = view
+        , update = update
+        }
 
 
 
