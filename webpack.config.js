@@ -1,13 +1,11 @@
 const path = require('path');
 const webpack = require('webpack');
 const LoaderOptionsPlugin = webpack['LoaderOptionsPlugin'];
-const UglifyJsPlugin = webpack.optimize['UglifyJsPlugin'];
 const merge = require('webpack-merge');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const autoprefixer = require('autoprefixer');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-
 
 const prod = 'production';
 const dev = 'development';
@@ -22,24 +20,40 @@ const entryPath = path.join(__dirname, 'src/static/index.js');
 const mainPath = path.resolve(__dirname, "src/elm/Main.elm");
 const outputPath = path.join(__dirname, 'dist');
 const outputFilename = isProd ? '[name]-[hash].js' : '[name].js';
+const modulesPath = 'node_modules';
 
 console.log('WEBPACK GO! Building for ' + TARGET_ENV);
 
+const postCSSConfig = {
+    sourceMap: true,
+    plugins() {
+        return [
+            autoprefixer({})
+        ];
+    },
+};
+
+const postCssLoader = {
+    loader: 'postcss-loader',
+    options: postCSSConfig
+};
+
 // common webpack config (valid for dev and prod)
 let commonConfig = {
+    mode: isProd ? prod : dev,
     output: {
         path: outputPath,
-        filename: `static/js/${outputFilename}`,
+        chunkFilename: `static/js/${outputFilename}`,
     },
     resolve: {
         extensions: ['.js', '.elm'],
-        modules: ['node_modules']
+        modules: [modulesPath],
     },
     module: {
         noParse: /\.elm$/,
         rules: [{
             test: /\.(eot|ttf|woff|woff2|svg)$/,
-            use: 'file-loader?publicPath=../../&name=static/css/[hash].[ext]'
+            use: 'file-loader'
         }]
     },
     plugins: [
@@ -79,14 +93,19 @@ if (isDev === true) {
                         files: [
                             mainPath
                         ],
-                        pathToElm: 'node_modules/.bin/elm',
+                        pathToElm: modulesPath + '/.bin/elm',
                         verbose: true,
                         debug: true
                     }
                 }]
-            },{
+            }, {
                 test: /\.sc?ss$/,
-                use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader']
+                use: [
+                    'style-loader',
+                    'css-loader',
+                    postCssLoader,
+                    'sass-loader'
+                ]
             }]
         }
     });
@@ -103,17 +122,16 @@ if (isProd === true) {
                 use: 'elm-webpack-loader'
             }, {
                 test: /\.sc?ss$/,
-                use: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    use: ['css-loader', 'postcss-loader', 'sass-loader']
-                })
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                    postCssLoader,
+                    'sass-loader'
+                ]
             }]
         },
         plugins: [
-            new ExtractTextPlugin({
-                filename: 'static/css/[name]-[hash].css',
-                allChunks: true,
-            }),
+            new MiniCssExtractPlugin(),
             new CopyWebpackPlugin([{
                 from: 'src/static/img/',
                 to: 'static/img/'
@@ -121,15 +139,17 @@ if (isProd === true) {
                 from: 'src/favicon.ico'
             }]),
 
-            // extract CSS into a separate file
-            // minify & mangle JS/CSS
-            new UglifyJsPlugin({
-                minimize: true,
-                compressor: {
-                    warnings: false
-                }
-                // mangle:  true
-            })
-        ]
+        ],
+        optimization: {
+            minimize: false,
+            splitChunks: {
+                chunks: 'all'
+            }
+        }
+        ,
+        performance: {
+        //     maxAssetSize: 384000,
+            maxEntrypointSize: 512000
+        }
     });
 }
