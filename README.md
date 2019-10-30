@@ -55,7 +55,7 @@ npm run build
 
 ### Changelog
 
-**Ver 0.9.0**
+**Ver 0.9.1**
 * Update Packages (-> Webpack 4)
 * Update Elm (-> 0.19.1-3)
 * add gulp for build scripts
