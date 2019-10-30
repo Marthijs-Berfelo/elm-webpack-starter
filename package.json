@@ -3,7 +3,13 @@
   "description": "Webpack setup for writing Elm apps",
   "version": "0.9.1",
   "license": "MIT",
-  "author": "Marthijs Berfelo",
+  "author": "Peter Morawiec",
+  "contributors": [
+    {
+      "name": "Marthijs Berfelo",
+      "url": "https://github.com/Marthijs-Berfelo"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/Marthijs-Berfelo/elm-webpack-starter"
