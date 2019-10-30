@@ -1,12 +1,16 @@
-module Main exposing (..)
+module Main exposing (init, main, update, view)
 
 -- component import example
 
 import Browser
 import Components.Hello exposing (hello)
-import Html exposing (..)
+import Html exposing (Attribute, Html, p, text)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Material.Button exposing (buttonConfig, raisedButton)
+import Material.Card as Card exposing (CardBlock, card, cardBlock, cardConfig, cardMedia, cardMediaConfig)
+import Material.LayoutGrid exposing (alignMiddle, layoutGrid, layoutGridCell, layoutGridInner, span3, span4Phone, span6Desktop, span8Tablet)
+import Material.Theme as Theme
+import Material.Typography as Typography
 
 
 
@@ -62,23 +66,68 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container", style "margin-top" "30px", style "text-align" "center" ]
-        [ -- inline CSS (literal)
-          div [ class "row" ]
-            [ div [ class "col-xs-12" ]
-                [ div [ class "jumbotron" ]
-                    [ img (src "static/img/elm.jpg" :: styles.img) [] -- inline CSS (via var)
-                    , hello model -- ext 'hello' component (takes 'model' as arg)
-                    , p [] [ text "Elm Webpack Starter" ]
-                    , button [ class "btn btn-primary btn-lg", onClick Increment ]
-                        [ -- click handler
-                          span [ class "glyphicon glyphicon-star" ] [] -- glyphicon
-                        , span [] [ text "FTW!" ]
+    layoutGrid
+        [ alignMiddle
+        , style "text-align" "center"
+        , style "align-items" "center"
+        , style "margin" "auto"
+        ]
+        [ layoutGridInner []
+            [ layoutGridCell [ span3 ] []
+            , layoutGridCell [ span6Desktop, span8Tablet, span4Phone ]
+                [ card
+                    { cardConfig
+                        | additionalAttributes =
+                            [ Theme.onSurface
+                            , style "background-color" "#eeeeee"
+                            , style "padding" "48px 60px"
+                            ]
+                    }
+                    { blocks =
+                        [ image
+                        , hello model
+                        , body
+                        , bodyButton
                         ]
-                    ]
+                    , actions = Nothing
+                    }
                 ]
+            , layoutGridCell [ span3 ] []
             ]
         ]
+
+
+image : CardBlock msg
+image =
+    cardMedia
+        { cardMediaConfig
+            | aspect = Just Card.Square
+            , additionalAttributes =
+                styles.img
+        }
+        "static/img/elm.jpg"
+
+
+body : CardBlock msg
+body =
+    cardBlock <|
+        p [ Typography.body1 ]
+            [ text "Elm Webpack Starter" ]
+
+
+bodyButton : CardBlock Msg
+bodyButton =
+    cardBlock <|
+        raisedButton
+            { buttonConfig
+                | icon = Just "star"
+                , onClick = Just Increment
+                , additionalAttributes =
+                    [ style "text-align" "center"
+                    , style "margin" "auto"
+                    ]
+            }
+            "FTW!"
 
 
 
@@ -89,6 +138,8 @@ styles : { img : List (Attribute msg) }
 styles =
     { img =
         [ style "width" "33%"
+        , style "min-width" "120px"
         , style "border" "4px solid #337AB7"
+        , style "margin" "auto"
         ]
     }

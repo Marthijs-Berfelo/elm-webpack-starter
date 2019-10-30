@@ -133,7 +133,7 @@ if (isProd === true) {
                 from: 'src/static/img/',
                 to: 'static/img/'
             }, {
-                from: 'src/favicon.ico'
+                from: 'src/static/favicon.ico'
             }]),
 
         ],
@@ -145,8 +145,8 @@ if (isProd === true) {
         }
         ,
         performance: {
-        //     maxAssetSize: 384000,
-            maxEntrypointSize: 512000
+            maxAssetSize: 140000,
+            maxEntrypointSize: 256000
         }
     });
 }

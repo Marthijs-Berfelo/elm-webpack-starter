@@ -2,6 +2,8 @@ module Components.Hello exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Material.Card exposing (CardBlock, cardBlock)
+import Material.Typography as Typography
 import String
 
 
@@ -9,8 +11,9 @@ import String
 -- hello component
 
 
-hello : Int -> Html a
+hello : Int -> CardBlock a
 hello model =
-    div
-        [ class "h1" ]
-        [ text ("Hello, Elm" ++ ("!" |> String.repeat model)) ]
+    cardBlock <|
+        div
+            [ Typography.headline3, style "margin-top" "20px", style "margin-bottom" "10px" ]
+            [ text ("Hello, Elm" ++ ("!" |> String.repeat model)) ]
