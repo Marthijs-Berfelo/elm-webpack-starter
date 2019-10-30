@@ -6,7 +6,8 @@ A simple Webpack setup for writing [Elm](http://elm-lang.org/) apps:
 
 * Dev server with live reloading, HMR
 * Support for CSS/SCSS (with Autoprefixer), image assets
-* Bootstrap 3.3+ (Sass version)
+* ~~Bootstrap 3.3+ (Sass version)~~
+* Material Web components (Sass version)
 * Bundling and minification for deployment
 * Basic app scaffold, using `Html.beginnerProgram`
 * A snippet of example code to get you started!
@@ -53,6 +54,12 @@ npm run build
 
 
 ### Changelog
+
+**Ver 0.9.0**
+* Update Packages (-> Webpack 4)
+* Update Elm (-> 0.19.1-3)
+* add gulp for build scripts
+* add [Material web components elm](https://package.elm-lang.org/packages/aforemny/material-components-web-elm/1.0.1/)
 
 **Ver 0.8.6**
 * Update Packages (-> Webpack 2)
