@@ -5,5 +5,6 @@ require( './styles/main.scss' );
 const Elm = require('./../elm/Main.elm').Elm;
 
 const app = Elm.Main.init({
-    node: document.getElementById('main')
+    node: document.getElementById('main'),
+    flags: { baseUrl: process.env.BASE_URL }
 });

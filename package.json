@@ -18,6 +18,7 @@
     "start": "webpack-dev-server --hot --inline",
     "prebuild": "gulp dist-clean",
     "build": "webpack",
+    "build:clean": "gulp dist-clean elm-clean && webpack",
     "test": "elm-test",
     "prereinstall": "yarn add -D shx && shx rm -rf node_modules && npm uninstall -g elm",
     "reinstall": "npm run prereinstall && npm i -g elm && yarn install && gulp elm"

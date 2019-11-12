@@ -6,6 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const autoprefixer = require('autoprefixer');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const exec = require('child_process').execSync;
 
 const prod = 'production';
 const dev = 'development';
@@ -15,9 +16,15 @@ const TARGET_ENV = process.env.npm_lifecycle_event === 'build' ? prod : dev;
 const isDev = TARGET_ENV === dev;
 const isProd = TARGET_ENV === prod;
 
+// determine elm version
+const ELM_VERSION = exec('elm --version', { encoding: 'utf-8'});
+
+console.log('Elm version:', ELM_VERSION);
+
 // entry and output path/filename variables
 const entryPath = path.join(__dirname, 'src/static/index.js');
 const mainPath = path.resolve(__dirname, "src/elm/Main.elm");
+// const env = path.resolve(__dirname, `src/env/${isProd? 'prod' : 'dev' }/Config.elm`);
 const outputPath = path.join(__dirname, 'dist');
 const outputFilename = isProd ? '[name]-[hash].js' : '[name].js';
 const modulesPath = 'node_modules';
@@ -81,6 +88,9 @@ let commonConfig = {
             template: 'src/static/index.html',
             inject: 'body',
             filename: 'index.html'
+        }),
+        new webpack.EnvironmentPlugin({
+            BASE_URL: env.baseUrl
         })
     ]
 };
@@ -96,7 +106,12 @@ if (isDev === true) {
             // serve index.html in place of 404 responses
             historyApiFallback: true,
             contentBase: './src',
-            hot: true
+            hot: true,
+            proxy: {
+                '/posts': {
+                    target: 'http://localhost:5019'
+                }
+            }
         },
         module: {
             rules: [{

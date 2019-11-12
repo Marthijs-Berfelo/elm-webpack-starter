@@ -1,145 +1,159 @@
-module Main exposing (init, main, update, view)
+module Main exposing (..)
 
--- component import example
-
-import Browser
-import Components.Hello exposing (hello)
-import Html exposing (Attribute, Html, p, text)
-import Html.Attributes exposing (..)
-import Material.Button exposing (buttonConfig, raisedButton)
-import Material.Card as Card exposing (CardBlock, card, cardBlock, cardConfig, cardMedia, cardMediaConfig)
-import Material.LayoutGrid exposing (alignMiddle, layoutGrid, layoutGridCell, layoutGridInner, span3, span4Phone, span6Desktop, span8Tablet)
-import Material.Theme as Theme
-import Material.Typography as Typography
+import Browser exposing (Document, UrlRequest)
+import Browser.Navigation as Nav
+import Html exposing (Html, h3, text)
+import Main.Msg exposing (Msg(..))
+import Navigation.Route as Route exposing (Route)
+import Post.Pages.Form as PostForm
+import Post.Pages.ListPosts as ListPosts
+import Url exposing (Url)
 
 
-
--- APP
-
-
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
-    Browser.sandbox
+    Browser.application
         { init = init
         , view = view
         , update = update
+        , subscriptions = \_ -> Sub.none
+        , onUrlRequest = LinkClicked
+        , onUrlChange = UrlChanged
         }
 
 
-
--- MODEL
+type alias Flags =
+    { baseUrl : String }
 
 
 type alias Model =
-    Int
-
-
-init : Model
-init =
-    0
-
-
-
--- UPDATE
-
-
-type Msg
-    = NoOp
-    | Increment
-
-
-update : Msg -> Model -> Model
-update msg model =
-    case msg of
-        NoOp ->
-            model
-
-        Increment ->
-            model + 1
-
-
-
--- VIEW
--- Html is defined as: elem [ attribs ][ children ]
--- CSS can be applied via class names or inline style attrib
-
-
-view : Model -> Html Msg
-view model =
-    layoutGrid
-        [ alignMiddle
-        , style "text-align" "center"
-        , style "align-items" "center"
-        , style "margin" "auto"
-        ]
-        [ layoutGridInner []
-            [ layoutGridCell [ span3 ] []
-            , layoutGridCell [ span6Desktop, span8Tablet, span4Phone ]
-                [ card
-                    { cardConfig
-                        | additionalAttributes =
-                            [ Theme.onSurface
-                            , style "background-color" "#eeeeee"
-                            , style "padding" "48px 60px"
-                            ]
-                    }
-                    { blocks =
-                        [ image
-                        , hello model
-                        , body
-                        , bodyButton
-                        ]
-                    , actions = Nothing
-                    }
-                ]
-            , layoutGridCell [ span3 ] []
-            ]
-        ]
-
-
-image : CardBlock msg
-image =
-    cardMedia
-        { cardMediaConfig
-            | aspect = Just Card.Square
-            , additionalAttributes =
-                styles.img
-        }
-        "static/img/elm.jpg"
-
-
-body : CardBlock msg
-body =
-    cardBlock <|
-        p [ Typography.body1 ]
-            [ text "Elm Webpack Starter" ]
-
-
-bodyButton : CardBlock Msg
-bodyButton =
-    cardBlock <|
-        raisedButton
-            { buttonConfig
-                | icon = Just "star"
-                , onClick = Just Increment
-                , additionalAttributes =
-                    [ style "text-align" "center"
-                    , style "margin" "auto"
-                    ]
-            }
-            "FTW!"
-
-
-
--- CSS STYLES
-
-
-styles : { img : List (Attribute msg) }
-styles =
-    { img =
-        [ style "width" "33%"
-        , style "min-width" "120px"
-        , style "border" "4px solid #337AB7"
-        , style "margin" "auto"
-        ]
+    { route : Route
+    , page : Page
+    , navKey : Nav.Key
+    , baseUrl : String
     }
+
+
+type Page
+    = NotFoundPage
+    | ListPage ListPosts.Model
+    | PostFormPage PostForm.FormModel
+
+
+init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url navKey =
+    let
+        model =
+            { route = Route.parseUrl url
+            , page = NotFoundPage
+            , navKey = navKey
+            , baseUrl = flags.baseUrl
+            }
+    in
+    initPage ( model, Cmd.none )
+
+
+initPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+initPage ( model, existingCommands ) =
+    let
+        ( currentPage, mappedPageCommands ) =
+            case model.route of
+                Route.NotFound ->
+                    ( NotFoundPage, Cmd.none )
+
+                Route.Posts ->
+                    let
+                        ( pageModel, pageCmd ) =
+                            ListPosts.init
+                    in
+                    ( ListPage pageModel, Cmd.map ListPageMsg pageCmd )
+
+                Route.Post postId ->
+                    let
+                        ( pageModel, pageCmd ) =
+                            PostForm.initEditMode postId model.navKey
+                    in
+                    ( PostFormPage pageModel, Cmd.map PostFormMsg pageCmd )
+
+                Route.NewPost ->
+                    let
+                        ( pageModel, pageCmd ) =
+                            PostForm.initCreateMode model.navKey
+                    in
+                    ( PostFormPage pageModel, Cmd.map PostFormMsg pageCmd )
+    in
+    ( { model | page = currentPage }
+    , Cmd.batch [ existingCommands, mappedPageCommands ]
+    )
+
+
+view : Model -> Document Msg
+view model =
+    { title = "Post App"
+    , body = [ viewPage model ]
+    }
+
+
+viewPage : Model -> Html Msg
+viewPage model =
+    case model.page of
+        NotFoundPage ->
+            notFoundView
+
+        ListPage pageModel ->
+            ListPosts.view pageModel
+                |> Html.map ListPageMsg
+
+        PostFormPage pageModel ->
+            PostForm.view pageModel
+                |> Html.map PostFormMsg
+
+
+notFoundView : Html msg
+notFoundView =
+    h3 [] [ text "Oops, that page was not found!" ]
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case ( msg, model.page ) of
+        ( ListPageMsg subMsg, ListPage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    ListPosts.update subMsg pageModel
+            in
+            ( { model | page = ListPage updatedPageModel }
+            , Cmd.map ListPageMsg updatedCmd
+            )
+
+        ( PostFormMsg subMsg, PostFormPage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    PostForm.update subMsg pageModel
+            in
+            ( { model | page = PostFormPage updatedPageModel }
+            , Cmd.map PostFormMsg updatedCmd
+            )
+
+        ( LinkClicked urlRequest, _ ) ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model
+                    , Nav.pushUrl model.navKey (Url.toString url)
+                    )
+
+                Browser.External url ->
+                    ( model
+                    , Nav.load url
+                    )
+
+        ( UrlChanged url, _ ) ->
+            let
+                newRoute =
+                    Route.parseUrl url
+            in
+            ( { model | route = newRoute }, Cmd.none )
+                |> initPage
+
+        ( _, _ ) ->
+            ( model, Cmd.none )
