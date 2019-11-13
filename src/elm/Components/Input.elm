@@ -1,39 +1,36 @@
-module Components.Input exposing (passwordInput, textInput)
+module Components.Input exposing (AreaProps, TextProps, areaInput, passwordInput, textInput)
 
-import Html exposing (Attribute, Html, div)
+import Components exposing (IconProps, InputProps)
+import Html exposing (Attribute, Html)
 import Material.HelperText exposing (characterCounter, helperLine, helperText, helperTextConfig)
-import Material.Icon exposing (IconConfig)
+import Material.LayoutGrid exposing (layoutGridCell)
+import Material.TextArea exposing (TextAreaConfig, textArea, textAreaConfig)
 import Material.TextField exposing (TextFieldConfig, textField, textFieldConfig, textFieldIcon)
 
 
-type alias FieldProps msg =
-    { value : Maybe String
-    , label : String
-    , placeholder : String
-    , icon : Maybe (IconProps msg)
-    , disabled : Bool
-    , required : Bool
-    , invalid : Bool
-    , hintText : Maybe String
-    , maxLength : Maybe Int
-    , customStyles : List (Attribute msg)
-    }
+type alias TextProps msg =
+    InputProps
+        { icon : Maybe (IconProps msg)
+        }
+        msg
 
 
-type alias IconProps msg =
-    { icon : String
-    , config : IconConfig msg
-    }
+type alias AreaProps msg =
+    InputProps
+        { rows : Maybe Int
+        , cols : Maybe Int
+        }
+        msg
 
 
-passwordInput : FieldProps msg -> Html msg
+passwordInput : TextProps msg -> Html msg
 passwordInput props =
     let
         field =
             [ textField <| fieldConfig "password" props ]
 
         hints =
-            fieldHints props
+            fieldHints props.maxLength props.hintText
 
         fields =
             case List.isEmpty hints of
@@ -43,18 +40,19 @@ passwordInput props =
                 False ->
                     List.append field <| [ helperLine [] hints ]
     in
-    div []
+    inputField
+        props.responsive
         fields
 
 
-textInput : FieldProps msg -> Html msg
+textInput : TextProps msg -> Html msg
 textInput props =
     let
         field =
             [ textField <| fieldConfig "text" props ]
 
         hints =
-            fieldHints props
+            fieldHints props.maxLength props.hintText
 
         fields =
             case List.isEmpty hints of
@@ -64,11 +62,34 @@ textInput props =
                 False ->
                     List.append field <| [ helperLine [] hints ]
     in
-    div []
+    inputField
+        props.responsive
         fields
 
 
-fieldConfig : String -> FieldProps msg -> TextFieldConfig msg
+areaInput : AreaProps msg -> Html msg
+areaInput props =
+    let
+        area =
+            [ textArea <| areaConfig props ]
+
+        hints =
+            fieldHints props.maxLength props.hintText
+
+        fields =
+            case List.isEmpty hints of
+                True ->
+                    area
+
+                False ->
+                    List.append area <| [ helperLine [] hints ]
+    in
+    inputField
+        props.responsive
+        fields
+
+
+fieldConfig : String -> TextProps msg -> TextFieldConfig msg
 fieldConfig fieldType props =
     let
         config =
@@ -83,6 +104,7 @@ fieldConfig fieldType props =
                 , placeholder = Just props.placeholder
                 , maxLength = props.maxLength
                 , additionalAttributes = props.customStyles
+                , onChange = props.changeHandler
             }
     in
     case props.icon of
@@ -95,20 +117,46 @@ fieldConfig fieldType props =
             config
 
 
-fieldHints : FieldProps msg -> List (Html msg)
-fieldHints props =
+areaConfig : AreaProps msg -> TextAreaConfig msg
+areaConfig props =
+    { textAreaConfig
+        | outlined = True
+        , fullwidth = True
+        , invalid = props.invalid
+        , disabled = props.disabled
+        , required = props.required
+        , label = Just props.label
+        , value = props.value
+        , placeholder = Just props.placeholder
+        , rows = props.rows
+        , cols = props.cols
+        , maxLength = props.maxLength
+        , additionalAttributes = props.customStyles
+        , onChange = props.changeHandler
+    }
+
+
+fieldHints : Maybe Int -> Maybe String -> List (Html msg)
+fieldHints maxLength hintText =
     let
         counter =
-            case props.maxLength of
+            case maxLength of
                 Just _ ->
                     [ characterCounter [] ]
 
                 Nothing ->
                     []
     in
-    case props.hintText of
+    case hintText of
         Just text ->
             List.append [ helperText { helperTextConfig | persistent = True } text ] counter
 
         Nothing ->
             counter
+
+
+inputField : List (Attribute msg) -> List (Html msg) -> Html msg
+inputField responsive elements =
+    layoutGridCell
+        responsive
+        elements
