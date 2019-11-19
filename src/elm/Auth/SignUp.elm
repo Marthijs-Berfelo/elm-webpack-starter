@@ -2,10 +2,15 @@ module SignUp exposing (..)
 
 import Auth.User exposing (User, initialUser)
 import Browser
+import Components exposing (defaultForm)
+import Components.Btn exposing (btnProps, defaultBtn)
+import Components.Input exposing (passwordInput, textInput, textProps)
 import Css exposing (backgroundColor, block, border, borderRadius, cm, color, display, fontSize, hex, margin2, marginTop, padding, padding2, paddingLeft, px, width)
-import Html.Styled exposing (Attribute, Html, div, h1, styled, text, toUnstyled)
+import Html exposing (Html)
+import Html.Styled as Styled exposing (div, h1, styled, text, toUnstyled)
 import Html.Styled.Attributes exposing (css, id, type_)
 import Html.Styled.Events exposing (onClick, onInput)
+import Material.LayoutGrid exposing (layoutGridCell, span12)
 
 
 type Msg
@@ -31,7 +36,7 @@ update message user =
             { user | loggedIn = True }
 
 
-view : User -> Html Msg
+view : User -> Styled.Html Msg
 view user =
     div []
         [ h1 [ css [ paddingLeft (cm 3) ] ] [ text "Sign up" ]
@@ -74,9 +79,52 @@ view user =
         ]
 
 
-styledForm : List (Attribute msg) -> List (Html msg) -> Html msg
+newView : User -> Html Msg
+newView user =
+    defaultForm []
+        "Sign up"
+        []
+        [ textInput
+            { textProps
+                | label = "Name"
+                , value = Just user.name
+                , placeholder = "Name"
+                , required = True
+                , responsive = [ span12 ]
+                , changeHandler = Just SaveName
+            }
+        , textInput
+            { textProps
+                | label = "Email"
+                , value = Just user.email
+                , placeholder = "Email"
+                , required = True
+                , responsive = [ span12 ]
+                , changeHandler = Just SaveEmail
+            }
+        , passwordInput
+            { textProps
+                | label = "Password"
+                , value = Just user.password
+                , placeholder = "Password"
+                , required = True
+                , responsive = [ span12 ]
+                , changeHandler = Just SaveEmail
+            }
+        , layoutGridCell [ span12 ]
+            [ defaultBtn
+                { btnProps
+                    | label = "Create my account"
+                    , icon = Just "check"
+                    , clickHandler = Just SignUp
+                }
+            ]
+        ]
+
+
+styledForm : List (Styled.Attribute msg) -> List (Styled.Html msg) -> Styled.Html msg
 styledForm =
-    styled Html.Styled.form
+    styled Styled.form
         [ borderRadius (px 5)
         , backgroundColor (hex "#f2f2f2")
         , padding (px 20)
@@ -84,9 +132,9 @@ styledForm =
         ]
 
 
-styledInput : List (Attribute msg) -> List (Html msg) -> Html msg
+styledInput : List (Styled.Attribute msg) -> List (Styled.Html msg) -> Styled.Html msg
 styledInput =
-    styled Html.Styled.input
+    styled Styled.input
         [ display block
         , width (px 260)
         , padding2 (px 12) (px 20)
@@ -96,9 +144,9 @@ styledInput =
         ]
 
 
-styledButton : List (Attribute msg) -> List (Html msg) -> Html msg
+styledButton : List (Styled.Attribute msg) -> List (Styled.Html msg) -> Styled.Html msg
 styledButton =
-    styled Html.Styled.button
+    styled Styled.button
         [ width (px 300)
         , backgroundColor (hex "#397cd5")
         , color (hex "#fff")

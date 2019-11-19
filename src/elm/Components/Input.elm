@@ -1,4 +1,4 @@
-module Components.Input exposing (AreaProps, TextProps, areaInput, passwordInput, textInput)
+module Components.Input exposing (AreaProps, TextProps, areaInput, areaProps, passwordInput, textInput, textProps)
 
 import Components exposing (IconProps, InputProps)
 import Html exposing (Attribute, Html)
@@ -6,6 +6,7 @@ import Material.HelperText exposing (characterCounter, helperLine, helperText, h
 import Material.LayoutGrid exposing (layoutGridCell)
 import Material.TextArea exposing (TextAreaConfig, textArea, textAreaConfig)
 import Material.TextField exposing (TextFieldConfig, textField, textFieldConfig, textFieldIcon)
+import Maybe exposing (Maybe)
 
 
 type alias TextProps msg =
@@ -21,6 +22,43 @@ type alias AreaProps msg =
         , cols : Maybe Int
         }
         msg
+
+
+textProps : TextProps msg
+textProps =
+    { label = "Email"
+    , value = Nothing
+    , placeholder = ""
+    , icon = Nothing
+    , required = False
+    , invalid = False
+    , disabled = False
+    , hintText = Nothing
+    , maxLength = Nothing
+    , responsive = []
+    , customStyles = []
+    , clickHandler = Nothing
+    , changeHandler = Nothing
+    }
+
+
+areaProps : AreaProps msg
+areaProps =
+    { label = "Email"
+    , value = Nothing
+    , placeholder = ""
+    , rows = Just 2
+    , cols = Just 12
+    , required = False
+    , invalid = False
+    , disabled = False
+    , hintText = Nothing
+    , maxLength = Nothing
+    , responsive = []
+    , customStyles = []
+    , clickHandler = Nothing
+    , changeHandler = Nothing
+    }
 
 
 passwordInput : TextProps msg -> Html msg
