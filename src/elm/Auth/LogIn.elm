@@ -1,4 +1,4 @@
-module Auth.SignUp exposing (..)
+module Auth.LogIn exposing (..)
 
 import Auth.User exposing (User)
 import Components exposing (defaultForm)
@@ -9,22 +9,14 @@ import Material.LayoutGrid exposing (layoutGridCell, span12)
 
 
 type Msg
-    = SaveName String
-    | SaveEmail String
+    = SaveEmail String
     | SavePassword String
-    | SignUp
+    | Login
 
 
 update : Msg -> User -> ( User, Cmd msg )
 update message user =
     case message of
-        SaveName name ->
-            ( { user
-                | name = name
-              }
-            , Cmd.none
-            )
-
         SaveEmail email ->
             ( { user
                 | email = email
@@ -39,7 +31,7 @@ update message user =
             , Cmd.none
             )
 
-        SignUp ->
+        Login ->
             ( { user
                 | loggedIn = True
               }
@@ -47,21 +39,12 @@ update message user =
             )
 
 
-signUpForm : User -> Html Msg
-signUpForm user =
+logInForm : User -> Html Msg
+logInForm user =
     defaultForm []
-        "Sign up"
+        ""
         []
         [ textInput
-            { textProps
-                | label = "Name"
-                , value = Just user.name
-                , placeholder = "Name"
-                , required = True
-                , responsive = [ span12 ]
-                , changeHandler = Just SaveName
-            }
-        , textInput
             { textProps
                 | label = "Email"
                 , value = Just user.email
@@ -82,9 +65,9 @@ signUpForm user =
         , layoutGridCell [ span12 ]
             [ defaultBtn
                 { btnProps
-                    | label = "Create my account"
+                    | label = "Log in"
                     , icon = Just "check"
-                    , clickHandler = Just SignUp
+                    , clickHandler = Just Login
                 }
             ]
         ]
